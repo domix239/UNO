@@ -24,4 +24,21 @@ public class Player {
         this.id = id;
         this.name = new Faker().name().firstName();
     }
+
+    public Card decideDrop(Card upperCard) {
+        String color = upperCard.getColor();
+        ArrayList<Card> playable = new ArrayList<>();
+        cards.forEach((card -> {
+            if (upperCard.getColor().equals(card.getColor())){
+                playable.add(card);
+            } else if (card.getColor().equals("wild"))
+                playable.add(card);
+        }));
+
+        System.out.println("Playable cards: ");
+
+        // wild colorpick
+
+        return cards.get(0);
+    }
 }
