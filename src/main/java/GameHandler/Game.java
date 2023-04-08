@@ -1,15 +1,15 @@
 package GameHandler;
 
+import CardEnums.Actions;
+import CardEnums.Colors;
 import CardManager.Card;
 import CardManager.Deck;
 import Players.Player;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class Game {
-    final String[] COLORS = new String[]{"green", "yellow", "blue", "red"};
+    final String[] COLORS = new String[]{Colors.RED,Colors.BLUE,Colors.RED,Colors.GREEN};
     Player[] players;
     Deck deck;
     boolean isOver = false;
@@ -36,7 +36,7 @@ public class Game {
     }
 
     private boolean verifyFirstCard(Card card) {
-        return !card.getColor().equalsIgnoreCase("wild") && card.getNumberOrAction() instanceof Integer;
+        return !card.getColor().equalsIgnoreCase(Colors.WILD) && card.getNumberOrAction() instanceof Integer;
     }
 
     private void handOutCards() {
@@ -61,20 +61,18 @@ public class Game {
     }
 
     public void start() throws InterruptedException {
-        boolean isRight = true;
         do {
             for (Player player :
                     players) {
-                System.out.println("Player " + player.getName() + "s turn.");
-                System.out.println("\nDiscard Deck: [" + upperCard.getColor().toUpperCase() + " " + upperCard.getNumberOrAction() + "]");
-                if (checkAndDrawCards(player))
+                System.out.println("\n\nPlayer " + player.getName() + "s turn.");
+                System.out.println("Discard Deck: [" + upperCard.getColor().toUpperCase() + " " + upperCard.getNumberOrAction() + "]");
+                if (checkAndDrawCards(player)) {
+                    // TODO remove => just for debugging to change upper card while playcard is not implemented
+                    mockUpper();
                     continue;
-                if (checkAndSkip()) {
-                    continue;
-                }
-                if (checkAndReverse()) {
-                    int rotationDistance = player.getId() == 0 ? players.length - 1 : -1;
-                    Collections.rotate(Arrays.asList(players), rotationDistance);
+                }if (checkAndSkip()) {
+                    // TODO remove => just for debugging to change upper card while playcard is not implemented
+                    mockUpper();
                     continue;
                 }
                 if (upperCard.getNumberOrAction().equals("+4")) {
@@ -95,7 +93,7 @@ public class Game {
                     boolean validInput = false;
                     int discardCardId = getAndVerifyUserInput(scanner, counter);
                     Card discardCard = playerCards.remove(discardCardId);
-                    if (discardCard.getColor().equalsIgnoreCase("wild")) {
+                    if (discardCard.getColor().equalsIgnoreCase(Colors.YELLOW)) {
                         System.out.println("What color do you request? ");
                         int index = -1;
                         for (String color :
@@ -110,11 +108,25 @@ public class Game {
                     Thread.sleep(500);
                     // implement AI logic here
                     // Card card = player.decideDrop(upperCard);
+                    // TODO remove
                     if (player.getId() == 3)
-                        upperCard = new Card("wild", "reverse");
+                        upperCard = new Card(Colors.WILD, Actions.REVERSE);
+                    else
+                        upperCard = player.decideDrop(upperCard);
+                }
+                // reverse the player array and re-start the game loop
+                if (checkAndReverse()) {
+                    Collections.reverse(Arrays.asList(players));
+                    int rotationDistance = player.getId() == 0 ? players.length - 1 : -1;
+                    Collections.rotate(Arrays.asList(players), rotationDistance);
+                    start();
                 }
             }
         } while (!isOver);
+    }
+
+    private void mockUpper(){
+        upperCard = deck.draw();
     }
 
     private int getAndVerifyUserInput(Scanner scanner, int upperBoundary) {

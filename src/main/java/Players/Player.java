@@ -1,6 +1,8 @@
 package Players;
 
+import CardEnums.Colors;
 import CardManager.Card;
+import Util.CardLogger;
 import com.github.javafaker.Faker;
 import lombok.Data;
 import lombok.Getter;
@@ -31,14 +33,16 @@ public class Player {
         cards.forEach((card -> {
             if (upperCard.getColor().equals(card.getColor())){
                 playable.add(card);
-            } else if (card.getColor().equals("wild"))
+            } else if (card.getColor().equals(Colors.WILD))
                 playable.add(card);
         }));
 
-        System.out.println("Playable cards: ");
+        Card card = cards.get(0);
+
+        System.out.println(name+" played "+ CardLogger.log(card));
 
         // wild colorpick
 
-        return cards.get(0);
+        return card;
     }
 }

@@ -1,5 +1,7 @@
 package CardManager;
 
+import CardEnums.Actions;
+import CardEnums.Colors;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
@@ -11,7 +13,7 @@ import java.util.*;
 public class Deck {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    final String[] COLORS = new String[]{"red", "yellow", "blue", "green"};
+    final String[] COLORS = new String[]{Colors.RED, Colors.BLUE, Colors.RED, Colors.GREEN};
     private ArrayList<Card> cards;
 
     public Deck() {
@@ -25,14 +27,14 @@ public class Deck {
                     cards.add(new Card(color, i));
             }
             for (int i = 0; i < 2; i++) {
-                cards.add(new Card(color,"+2"));
-                cards.add(new Card(color,"reverse"));
-                cards.add(new Card(color,"skipped"));
+                cards.add(new Card(color, Actions.DRAW_TWO));
+                cards.add(new Card(color, Actions.REVERSE));
+                cards.add(new Card(color, Actions.SKIPPED));
             }
         }
         for (int i = 0; i < 4; i++) {
-            cards.add(new Card("wild","wild"));
-            cards.add(new Card("wild","+4"));
+            cards.add(new Card(Colors.WILD, Actions.WILD));
+            cards.add(new Card(Colors.WILD, Actions.DRAW_FOUR));
         }
     }
 
