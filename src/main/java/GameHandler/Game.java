@@ -9,7 +9,7 @@ import Players.Player;
 import java.util.*;
 
 public class Game {
-    final String[] COLORS = new String[]{Colors.RED,Colors.BLUE,Colors.RED,Colors.GREEN};
+    final String[] COLORS = new String[]{Colors.RED, Colors.BLUE, Colors.RED, Colors.GREEN};
     Player[] players;
     Deck deck;
     boolean isOver = false;
@@ -62,17 +62,16 @@ public class Game {
 
     public void start() throws InterruptedException {
         do {
+            int playerIndex = -1;
             for (Player player :
                     players) {
+                playerIndex++;
                 System.out.println("\n\nPlayer " + player.getName() + "s turn.");
                 System.out.println("Discard Deck: [" + upperCard.getColor().toUpperCase() + " " + upperCard.getNumberOrAction() + "]");
                 if (checkAndDrawCards(player)) {
-                    // TODO remove => just for debugging to change upper card while playcard is not implemented
-                    mockUpper();
                     continue;
-                }if (checkAndSkip()) {
-                    // TODO remove => just for debugging to change upper card while playcard is not implemented
-                    mockUpper();
+                }
+                if (checkAndSkip()) {
                     continue;
                 }
                 if (upperCard.getNumberOrAction().equals("+4")) {
@@ -104,15 +103,20 @@ public class Game {
                         String chosenColor = COLORS[getAndVerifyUserInput(scanner, index)];
                         discardCard.setColor(chosenColor);
                     }
+                    upperCard = discardCard;
                 } else {
-                    Thread.sleep(500);
-                    // implement AI logic here
-                    // Card card = player.decideDrop(upperCard);
-                    // TODO remove
-                    if (player.getId() == 3)
-                        upperCard = new Card(Colors.WILD, Actions.REVERSE);
-                    else
-                        upperCard = player.decideDrop(upperCard);
+                    Thread.sleep(1500);
+
+                    Card decided = doDecision(player,playerIndex);
+
+                    if (decided == null) {
+                        addToPlayerHands(player,1);
+                        decided = doDecision(player,playerIndex);
+                    }
+                    upperCard = decided != null ? decided : upperCard;
+                    if (decided == null)
+                        continue;
+                    // upperCard = player.decideDrop(upperCard, playerIndex + 1 == players.length ? players[0].getCards().size() : players[playerIndex + 1].getCards().size());
                 }
                 // reverse the player array and re-start the game loop
                 if (checkAndReverse()) {
@@ -125,8 +129,10 @@ public class Game {
         } while (!isOver);
     }
 
-    private void mockUpper(){
-        upperCard = deck.draw();
+    private Card doDecision(Player player, int playerIndex) {
+        return player.decideDrop(upperCard, playerIndex + 1 == players.length ?
+                players[0].getCards().size() :
+                players[playerIndex + 1].getCards().size());
     }
 
     private int getAndVerifyUserInput(Scanner scanner, int upperBoundary) {
@@ -150,11 +156,11 @@ public class Game {
 
     private boolean checkAndDrawCards(Player player) {
         if (upperCard.getNumberOrAction().equals("+4")) {
-            addToPlayerHands(player,4);
+            addToPlayerHands(player, 4);
             return true;
         }
         if (upperCard.getNumberOrAction().equals("+2")) {
-            addToPlayerHands(player,2);
+            addToPlayerHands(player, 2);
             return true;
         }
         return false;
@@ -169,15 +175,6 @@ public class Game {
     }
 
     private void addToPlayerHands(Player player, int numberOfCards) {
-        Collections.addAll(player.getCards(),handOutNumberOfCards(numberOfCards));
+        Collections.addAll(player.getCards(), handOutNumberOfCards(numberOfCards));
     }
-
-    private void changePlayerOrder(int currentPlayer) {
-        Player[] reversed = new Player[players.length];
-        for (int i = 0; i < players.length; i++) {
-            reversed[(i+1) % players.length] = players[i];
-        }
-        players = reversed;
-    }
-
 }
