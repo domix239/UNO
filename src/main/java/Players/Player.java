@@ -4,12 +4,12 @@ import CardEnums.Actions;
 import CardEnums.Colors;
 import CardManager.Card;
 import Util.CardLogger;
+import com.github.javafaker.Color;
 import com.github.javafaker.Faker;
 import lombok.Data;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 @Data
 public class Player {
@@ -23,6 +23,9 @@ public class Player {
     final double CHANCE_PLAY_SAME_COLOR_ACTION = 0.3f;
     final double CHANCE_PLAY_WILD_COLOR_CHANGE = 0.25f;
     final double CHANCE_PLAY_WILD_DRAW_FOUR = 0.25f;
+    final double CHANCE_PLAY_SECOND_COMMON_COLOR = 0.3f;
+    final double CHANCE_PLAY_THIRD_COMMON_COLOR = 0.2f;
+    final double CHANCE_PLAY_FOURTH_COMMON_COLOR = 0.1f;
     Random rnd = new Random();
 
     ArrayList<Card> cards;
@@ -35,85 +38,6 @@ public class Player {
         this.id = id;
         this.name = new Faker().name().firstName();
     }
-
-    /*public Card decideDrop(Card upperCard, int cardAmountNextPlayer) {
-        Random rnd = new Random();
-        ArrayList<Card> playable = new ArrayList<>();
-        ArrayList<Card> sameColorCards = new ArrayList<>();
-        ArrayList<Card> sameNumberOrActionCards = new ArrayList<>();
-        ArrayList<Card> wildCards = new ArrayList<>();
-        AtomicInteger yellowCount = new AtomicInteger();
-        AtomicInteger greenCount = new AtomicInteger();
-        AtomicInteger blueCount = new AtomicInteger();
-        AtomicInteger redCount = new AtomicInteger();
-
-        cards.forEach((card -> {
-            switch (card.getColor()) {
-                case Colors.GREEN:
-                    greenCount.getAndIncrement();
-                    break;
-                case Colors.RED:
-                    redCount.getAndIncrement();
-                    break;
-                case Colors.BLUE:
-                    blueCount.getAndIncrement();
-                    break;
-                case Colors.YELLOW:
-                    yellowCount.getAndIncrement();
-                    break;
-            }
-
-            if (upperCard.getColor().equals(card.getColor())) {
-                sameColorCards.add(card);
-            } else if (!upperCard.getColor().equals(card.getColor()) &&
-                    upperCard.getNumberOrAction().equals(card.getNumberOrAction())){
-                sameNumberOrActionCards.add(card);
-            }else if (card.getColor().equals(Colors.WILD)) {
-                wildCards.add(card);
-            }
-        }));
-
-        playable.addAll(sameColorCards);
-        playable.addAll(sameNumberOrActionCards);
-        playable.addAll(wildCards);
-        // check upper card
-        // check has same color => if not => check wild // draw
-        // check highest number
-        // drop card // insert small chance to drop a wild in between
-
-        ArrayList<Card> possiblePlay = new ArrayList<>();
-
-        if (sameColorCards.size() > 0) {
-            int hightestNumber = -1;
-            int counter = 0;
-            int index = 0;
-            for (Card card : sameColorCards) {
-                Object obj = card.getNumberOrAction();
-                if (obj instanceof Integer) {
-                    if ((Integer) obj > hightestNumber) {
-                        hightestNumber = (Integer) obj;
-                        index = counter;
-                    }
-                }
-                counter++;
-            }
-            // tend to play the highest card possible with 90% possibility
-            if (rnd.nextDouble() > CHANCE_FAIL)
-                possiblePlay.add(sameColorCards.get(index));
-            else possiblePlay.add(sameColorCards.get(new Random().nextInt(sameColorCards.size())));
-        }
-        if (sameNumberOrActionCards.size() > 0) {
-
-        }
-
-        Card card = cards.get(0);
-
-        System.out.println(name+" played "+ CardLogger.log(card));
-
-        // wild colorpick
-
-        return card;
-    }*/
 
     public Card decideDrop(Card upperCard, int cardsOfNextPlayer) {
         // TODO remove mockdata
@@ -137,7 +61,6 @@ public class Player {
     //    cards.add(new Card(Colors.YELLOW, 1));
 
         Card chosenCard = null;
-        int highestNumber = -1;
 
         if (rnd.nextFloat() < CHANCE_PLAY_SAME_COLOR_HIGHEST_CARD) {
             chosenCard = getCardOfSameColor(upperCard);
@@ -151,10 +74,53 @@ public class Player {
             Card c = checkSameOrWild(upperCard);
             if (c != null) chosenCard = c;
         }
-
+        if (chosenCard.getColor().equals(Colors.WILD)) {
+            String demandColor = decideColor();
+            System.out.println("Player "+name+" demands the color "+demandColor+"!");
+            System.out.println("Player "+name+" played "+ CardLogger.logNewColor(chosenCard,demandColor)+".\n");
+            chosenCard.setColor(demandColor);
+        } else
+            System.out.println("Player "+name+" played "+ CardLogger.log(chosenCard)+".\n");
         cards.remove(chosenCard);
-        System.out.println("Player "+name+" played "+ CardLogger.log(chosenCard)+".");
         return chosenCard;
+    }
+
+    private String decideColor() {
+        final String[] COLORS = {Colors.GREEN, Colors.RED, Colors.YELLOW, Colors.BLUE};
+        Map<String, Integer> colorCounts = new HashMap<>();
+
+        Collections.addAll(cards,new Card(Colors.WILD,Actions.DRAW_FOUR));
+
+        for (Card card : cards) {
+            String color = card.getColor();
+            if (!color.equals(Colors.WILD))
+                colorCounts.put(color, colorCounts.getOrDefault(color, 0) + 1);
+        }
+
+        List<Map.Entry<String, Integer>> colorCountList = new ArrayList<>(colorCounts.entrySet());
+        colorCountList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
+        String mostCommon = colorCountList.get(0).getKey();
+        String secondMostCommon = "";
+        String thirdMostCommon = "";
+        String fourthMostCommon = "";
+
+        try {
+            secondMostCommon = colorCountList.get(1).getKey();
+            thirdMostCommon = colorCountList.get(2).getKey();
+            fourthMostCommon = colorCountList.get(3).getKey();
+        } catch (Exception ignored) {}
+
+        // default: wish for a color where player has the most cards from
+        String chosenColor = mostCommon;
+        if (!secondMostCommon.equals("") && rnd.nextFloat() < CHANCE_PLAY_SECOND_COMMON_COLOR)
+            chosenColor = secondMostCommon;
+        if (!thirdMostCommon.equals("") && rnd.nextFloat() < CHANCE_PLAY_THIRD_COMMON_COLOR)
+            chosenColor = thirdMostCommon;
+        if (!fourthMostCommon.equals("") && rnd.nextFloat() < CHANCE_PLAY_FOURTH_COMMON_COLOR)
+            chosenColor = fourthMostCommon;
+
+        return chosenColor;
     }
 
     private Card checkSameOrWild(Card upperCard) {

@@ -10,6 +10,8 @@ public class Card {
     int number;
     String action;
 
+    boolean wasExecuted = false;
+
     public Card(String color, Object numberOrAction) {
         this.color = color;
         this.numberOrAction = numberOrAction;

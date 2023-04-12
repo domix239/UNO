@@ -61,63 +61,60 @@ public class Game {
     }
 
     public void start() throws InterruptedException {
+        int round = 0;
         do {
             int playerIndex = -1;
             for (Player player :
                     players) {
-                playerIndex++;
-                System.out.println("\n\nPlayer " + player.getName() + "s turn.");
-                System.out.println("Discard Deck: [" + upperCard.getColor().toUpperCase() + " " + upperCard.getNumberOrAction() + "]");
-                if (checkAndDrawCards(player)) {
-                    continue;
-                }
-                if (checkAndSkip()) {
-                    continue;
-                }
-                if (upperCard.getNumberOrAction().equals("+4")) {
-                    Collections.addAll(player.getCards(), handOutNumberOfCards(4));
-                }
-
-                if (player.getId() == 0) {
-                    System.out.println("Choose a card to play: \n");
-                    ArrayList<Card> playerCards = player.getCards();
-                    int counter = -1;
-                    for (Card c :
-                            playerCards) {
-                        counter++;
-                        System.out.println("(" + counter + ") [" + c.getColor().toUpperCase() + " " + c.getNumberOrAction() + "]");
-                    }
-
-                    Scanner scanner = new Scanner(System.in);
-                    boolean validInput = false;
-                    int discardCardId = getAndVerifyUserInput(scanner, counter);
-                    Card discardCard = playerCards.remove(discardCardId);
-                    if (discardCard.getColor().equalsIgnoreCase(Colors.YELLOW)) {
-                        System.out.println("What color do you request? ");
-                        int index = -1;
-                        for (String color :
-                                COLORS) {
-                            index++;
-                            System.out.println("(" + index + ") " + color.toUpperCase());
-                        }
-                        String chosenColor = COLORS[getAndVerifyUserInput(scanner, index)];
-                        discardCard.setColor(chosenColor);
-                    }
-                    upperCard = discardCard;
-                } else {
-                    Thread.sleep(1500);
-
-                    Card decided = doDecision(player,playerIndex);
-
-                    if (decided == null) {
-                        addToPlayerHands(player,1);
-                        decided = doDecision(player,playerIndex);
-                    }
-                    upperCard = decided != null ? decided : upperCard;
-                    if (decided == null)
+                round++;
+                if (checkAndDrawCards(player) || checkAndSkip()) {
+                        System.out.println("Player " + player.getName() + "s turn was skipped!");
                         continue;
-                    // upperCard = player.decideDrop(upperCard, playerIndex + 1 == players.length ? players[0].getCards().size() : players[playerIndex + 1].getCards().size());
                 }
+                System.out.println("\n\nPlayer " + player.getName() + "s turn.");
+                System.out.println("Discard Pile: [" + upperCard.getColor().toUpperCase() + " " + upperCard.getNumberOrAction() + "]");
+
+                    if (player.getId() == 0) {
+                        System.out.println("Choose a card to play: \n");
+                        ArrayList<Card> playerCards = player.getCards();
+                        int counter = -1;
+                        for (Card c :
+                                playerCards) {
+                            counter++;
+                            System.out.println("(" + counter + ") [" + c.getColor().toUpperCase() + " " + c.getNumberOrAction() + "]");
+                        }
+
+                        Scanner scanner = new Scanner(System.in);
+                        boolean validInput = false;
+                        int discardCardId = getAndVerifyUserInput(scanner, counter);
+                        Card discardCard = playerCards.remove(discardCardId);
+                        if (discardCard.getColor().equalsIgnoreCase(Colors.WILD)) {
+                            System.out.println("What color do you request? ");
+                            int index = -1;
+                            for (String color :
+                                    COLORS) {
+                                index++;
+                                System.out.println("(" + index + ") " + color.toUpperCase());
+                            }
+                            String chosenColor = COLORS[getAndVerifyUserInput(scanner, index)];
+                            discardCard.setColor(chosenColor);
+                        }
+                        upperCard = discardCard;
+                    } else {
+                        Thread.sleep(1500);
+
+                        Card decided = doDecision(player, playerIndex);
+
+                        if (decided == null) {
+                            System.out.println("Player " + player.getName() + "draws a card.");
+                            addToPlayerHands(player, 1);
+                            decided = doDecision(player, playerIndex);
+                        }
+                        upperCard = decided != null ? decided : upperCard;
+                        if (decided == null)
+                            continue;
+                        // upperCard = player.decideDrop(upperCard, playerIndex + 1 == players.length ? players[0].getCards().size() : players[playerIndex + 1].getCards().size());
+                    }
                 // reverse the player array and re-start the game loop
                 if (checkAndReverse()) {
                     Collections.reverse(Arrays.asList(players));
@@ -155,23 +152,30 @@ public class Game {
     }
 
     private boolean checkAndDrawCards(Player player) {
-        if (upperCard.getNumberOrAction().equals("+4")) {
+        if (upperCard.getNumberOrAction().equals(Actions.DRAW_FOUR)) {
+            System.out.println("Player " + player.getName() + " draws 4 cards.");
             addToPlayerHands(player, 4);
+            upperCard.setNumberOrAction("_"+Actions.DRAW_FOUR+"_");
             return true;
         }
         if (upperCard.getNumberOrAction().equals("+2")) {
+            System.out.println("Player " + player.getName() + " draws 2 cards.");
             addToPlayerHands(player, 2);
+            upperCard.setNumberOrAction("_"+Actions.DRAW_TWO+"_");
             return true;
         }
         return false;
     }
 
     private boolean checkAndSkip() {
-        return upperCard.getNumberOrAction().equals("skipped");
+        boolean equals = upperCard.getNumberOrAction().equals(Actions.SKIPPED);
+        if (equals)
+            upperCard.setNumberOrAction("_"+Actions.SKIPPED+"_");
+        return equals;
     }
 
     private boolean checkAndReverse() {
-        return upperCard.getNumberOrAction().equals("reverse");
+        return upperCard.getNumberOrAction().equals(Actions.REVERSE);
     }
 
     private void addToPlayerHands(Player player, int numberOfCards) {
