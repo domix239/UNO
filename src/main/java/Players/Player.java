@@ -86,7 +86,6 @@ public class Player {
     }
 
     private String decideColor() {
-        final String[] COLORS = {Colors.GREEN, Colors.RED, Colors.YELLOW, Colors.BLUE};
         Map<String, Integer> colorCounts = new HashMap<>();
 
         Collections.addAll(cards,new Card(Colors.WILD,Actions.DRAW_FOUR));

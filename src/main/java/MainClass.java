@@ -6,7 +6,6 @@ import Players.Player;
 import java.util.Scanner;
 
 public class MainClass {
-
     public static void main(String[] args) throws InterruptedException {
         Scanner in = new Scanner(System.in);
         System.out.println("What is your name? ");
