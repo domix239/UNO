@@ -86,9 +86,8 @@ public class Player {
     }
 
     private String decideColor() {
+        final String[] COLORS = {Colors.GREEN, Colors.RED, Colors.YELLOW, Colors.BLUE};
         Map<String, Integer> colorCounts = new HashMap<>();
-
-        Collections.addAll(cards,new Card(Colors.WILD,Actions.DRAW_FOUR));
 
         for (Card card : cards) {
             String color = card.getColor();
@@ -99,12 +98,13 @@ public class Player {
         List<Map.Entry<String, Integer>> colorCountList = new ArrayList<>(colorCounts.entrySet());
         colorCountList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
-        String mostCommon = colorCountList.get(0).getKey();
+        String mostCommon = "";
         String secondMostCommon = "";
         String thirdMostCommon = "";
         String fourthMostCommon = "";
 
         try {
+            mostCommon = colorCountList.get(0).getKey();
             secondMostCommon = colorCountList.get(1).getKey();
             thirdMostCommon = colorCountList.get(2).getKey();
             fourthMostCommon = colorCountList.get(3).getKey();
@@ -118,6 +118,10 @@ public class Player {
             chosenColor = thirdMostCommon;
         if (!fourthMostCommon.equals("") && rnd.nextFloat() < CHANCE_PLAY_FOURTH_COMMON_COLOR)
             chosenColor = fourthMostCommon;
+
+        if (chosenColor.equals("")){
+            chosenColor = COLORS[new Random().nextInt(COLORS.length)];
+        }
 
         return chosenColor;
     }
