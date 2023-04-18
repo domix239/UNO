@@ -228,9 +228,6 @@ public class Game {
                     int rotationDistance = isReversed ? 1 : -1;
                     Collections.rotate(Arrays.asList(players), rotationDistance);
                     getUpperCard().setNumberOrAction("_"+Actions.REVERSE+"_");
-                    start();
-
-                    break;
                 }
             }
         } while (!isOver);
@@ -255,6 +252,7 @@ public class Game {
             if (playerCards.size() == discardCardId) return -1;
             if ((playerCards.get(discardCardId).getColor().equals(getUpperCard().getColor())) ||
                     (playerCards.get(discardCardId).getNumberOrAction().equals(getUpperCard().getNumberOrAction())) ||
+                    (playerCards.get(discardCardId).getNumberOrAction().equals("_"+getUpperCard().getNumberOrAction()+"_")) ||
                     (playerCards.get(discardCardId).getColor().equals(Colors.WILD))) {
                 validInput = true;
             } else {
