@@ -62,7 +62,7 @@ public class Game {
     }
 
     private void handOutCards() {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 3; i++) {
             for (Player player : players) {
                 ArrayList<Card> playerCards = player.getCards() != null ? player.getCards() : new ArrayList<>();
                 if (i % 2 == 0)
@@ -116,14 +116,9 @@ public class Game {
                 System.out.println("\n\nPlayer " + player.getName() + "s turn. ("+playerCards.size()+" cards in hand)");
                 System.out.println("Discard Pile: [" + getUpperCard().getColor().toUpperCase() + " " + getUpperCard().getNumberOrAction() + "]");
 
-                if (player.getId() == 2){
-                    Collections.addAll(playerCards, new Card(Colors.WILD,Actions.REVERSE));
-                }
-
                 if (player.getId() == 0) {
                     System.out.println("Choose a card to play: \n");
 
-                    Collections.addAll(playerCards,new Card(Colors.WILD, Actions.REVERSE));
                     int counter = logCardsToConsole(playerCards);
                     counter++;
                     System.out.println("(" + counter + ") Draw a card");
@@ -197,8 +192,7 @@ public class Game {
                 }
                 // reverse the player array and re-start the game loop
                 if (checkAndReverse()) {
-                    isReversed = !isReversed;
-                    System.out.println("### Game reversed! ###");
+                    isReversed = changeGameDirection(isReversed);
 
                     // counterclockwise
 /*                    if (isReversed) {
@@ -231,7 +225,7 @@ public class Game {
 
 
                     Collections.reverse(Arrays.asList(players));
-                    int rotationDistance = player.getId() == 0 ? players.length: -1;
+                    int rotationDistance = isReversed ? 1 : -1;
                     Collections.rotate(Arrays.asList(players), rotationDistance);
                     getUpperCard().setNumberOrAction("_"+Actions.REVERSE+"_");
                     start();
@@ -240,6 +234,13 @@ public class Game {
                 }
             }
         } while (!isOver);
+    }
+
+    private boolean changeGameDirection(boolean isReversed) {
+        System.out.println("##############################################################");
+        System.out.println("Changed game direction: "+(isReversed ? "(CCW)" : "(CW)")+" ==> "+(!isReversed ? "(CCW)" : "(CW)"));
+        System.out.println("##############################################################");
+        return !isReversed;
     }
 
     private boolean winChecker(int playerCards) {
